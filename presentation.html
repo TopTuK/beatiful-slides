@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Основы использования LLM — Базовые определения и термины</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,400;1,600&family=Source+Serif+4:ital,wght@0,300;0,400;0,600;1,300;1,400&display=swap" rel="stylesheet">
+    <style>
+        /* ===================================================
+           VIEWPORT FITTING: MANDATORY BASE STYLES
+           =================================================== */
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow-x: hidden;
+        }
+        html {
+            scroll-snap-type: y mandatory;
+            scroll-behavior: smooth;
+        }
+        *, *::before, *::after { box-sizing: border-box; }
+
+        .slide {
+            width: 100vw;
+            height: 100vh;
+            height: 100dvh;
+            overflow: hidden;
+            scroll-snap-align: start;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+        .slide-content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            max-height: 100%;
+            overflow: hidden;
+            padding: var(--slide-padding);
+        }
+
+        /* ===================================================
+           PAPER & INK THEME
+           =================================================== */
+        :root {
+            --font-display: 'Cormorant Garamond', Georgia, serif;
+            --font-body: 'Source Serif 4', Georgia, serif;
+
+            --bg-cream: #faf9f7;
+            --bg-paper: #f5f3ee;
+            --bg-dark: #1a1a1a;
+            --text-primary: #1a1a1a;
+            --text-secondary: #4a4a4a;
+            --text-muted: #999;
+            --accent: #c41e3a;
+            --accent-soft: rgba(196, 30, 58, 0.08);
+            --rule-color: #d4d0ca;
+            --good: #2e7d32;
+            --bad: #b71c1c;
+
+            --title-size: clamp(1.5rem, 5vw, 4rem);
+            --h2-size: clamp(1.25rem, 3.5vw, 2.5rem);
+            --h3-size: clamp(1rem, 2.5vw, 1.75rem);
+            --body-size: clamp(0.75rem, 1.5vw, 1.125rem);
+            --small-size: clamp(0.65rem, 1vw, 0.875rem);
+            --slide-padding: clamp(1.5rem, 5vw, 5rem);
+            --content-gap: clamp(0.5rem, 2vw, 2rem);
+            --element-gap: clamp(0.25rem, 1vw, 1rem);
+
+            --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        /* ===================================================
+           TYPOGRAPHY
+           =================================================== */
+        body {
+            font-family: var(--font-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+        }
+        h1, h2, h3 {
+            font-family: var(--font-display);
+            font-weight: 700;
+            line-height: 1.15;
+            margin: 0;
+        }
+        h1 { font-size: var(--title-size); }
+        h2 { font-size: var(--h2-size); }
+        h3 { font-size: var(--h3-size); font-weight: 600; }
+        p, li {
+            font-family: var(--font-body);
+            font-size: var(--body-size);
+            line-height: 1.55;
+            margin: 0;
+        }
+
+        /* ===================================================
+           SLIDE BASE
+           =================================================== */
+        .slide {
+            background: var(--bg-cream);
+        }
+        .slide-dark {
+            background: var(--bg-dark);
+            color: var(--bg-cream);
+        }
+        .slide-dark .section-number { color: rgba(255,255,255,0.3); }
+        .slide-dark .elegant-rule { background: rgba(255,255,255,0.2); }
+        .slide-dark .editorial-list li::before { color: rgba(255,255,255,0.5); }
+        .slide-dark h3 { color: var(--bg-cream); }
+        .slide-dark .text-secondary { color: rgba(255,255,255,0.7); }
+
+        /* ===================================================
+           EDITORIAL COMPONENTS
+           =================================================== */
+        .section-number {
+            font-family: var(--font-display);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            margin-bottom: clamp(0.15rem, 0.4vw, 0.35rem);
+            display: block;
+        }
+        .elegant-rule {
+            border: none;
+            height: 1px;
+            background: var(--rule-color);
+            margin: clamp(0.4rem, 1.2vw, 1.2rem) 0;
+            width: 100%;
+        }
+        .elegant-rule.short {
+            width: 60px;
+            background: var(--accent);
+            height: 2px;
+        }
+        .drop-cap {
+            font-family: var(--font-display);
+            font-size: clamp(2.2rem, 4.5vw, 3.5rem);
+            float: left;
+            line-height: 0.8;
+            margin-right: 0.12em;
+            margin-top: 0.08em;
+            color: var(--accent);
+            font-weight: 700;
+        }
+        .pull-quote {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-style: italic;
+            color: var(--text-secondary);
+            border-left: 3px solid var(--accent);
+            padding-left: clamp(0.75rem, 2vw, 1.5rem);
+            margin: clamp(0.4rem, 1vw, 0.8rem) 0;
+        }
+        .editorial-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.25rem, 0.7vh, 0.55rem);
+        }
+        .editorial-list li {
+            position: relative;
+            padding-left: clamp(1rem, 2vw, 1.5rem);
+        }
+        .editorial-list li::before {
+            content: '\2014';
+            position: absolute;
+            left: 0;
+            color: var(--accent);
+            font-weight: 600;
+        }
+        .text-secondary { color: var(--text-secondary); }
+        .text-muted { color: var(--text-muted); }
+        .text-accent { color: var(--accent); font-weight: 600; }
+
+        /* ===================================================
+           LAYOUTS
+           =================================================== */
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1rem, 3vw, 3rem);
+            align-items: start;
+            flex: 1;
+            min-height: 0;
+        }
+        .two-col.with-divider {
+            position: relative;
+        }
+        .two-col.with-divider::after {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 0;
+            bottom: 0;
+            width: 1px;
+            background: var(--rule-color);
+        }
+        .three-col {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: clamp(0.75rem, 2vw, 2rem);
+            flex: 1;
+            min-height: 0;
+        }
+        .col { display: flex; flex-direction: column; gap: clamp(0.2rem, 0.5vw, 0.5rem); }
+        .center-layout {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            gap: var(--content-gap);
+        }
+        .image-text-split {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(1.5rem, 4vw, 4rem);
+            align-items: center;
+            flex: 1;
+            min-height: 0;
+        }
+
+        /* ===================================================
+           IMAGE STYLES
+           =================================================== */
+        .img-editorial {
+            max-width: 100%;
+            max-height: min(50vh, 400px);
+            object-fit: contain;
+            border-radius: 4px;
+        }
+        .img-editorial.framed {
+            border: 1px solid var(--rule-color);
+            box-shadow: 0 4px 24px rgba(0,0,0,0.06);
+            border-radius: 6px;
+        }
+        .img-editorial.screenshot {
+            border: 1px solid #e0ddd8;
+            border-radius: 8px;
+            box-shadow: 0 6px 28px rgba(0,0,0,0.09);
+        }
+        .img-editorial.hero {
+            max-height: min(55vh, 450px);
+            border-radius: 8px;
+        }
+
+        /* ===================================================
+           TITLE SLIDE
+           =================================================== */
+        .slide-title .slide-content {
+            padding: var(--slide-padding);
+        }
+        .slide-title .title-split {
+            display: grid;
+            grid-template-columns: 1.2fr 1fr;
+            gap: clamp(1.5rem, 4vw, 4rem);
+            align-items: center;
+            flex: 1;
+            min-height: 0;
+        }
+        .slide-title .title-text {
+            display: flex;
+            flex-direction: column;
+            gap: clamp(0.3rem, 1vw, 0.8rem);
+        }
+        .slide-title h1 {
+            font-size: clamp(1.6rem, 4.5vw, 3.5rem);
+            font-weight: 700;
+            line-height: 1.1;
+            letter-spacing: -0.01em;
+        }
+        .slide-title .subtitle {
+            font-family: var(--font-body);
+            font-size: clamp(0.8rem, 1.8vw, 1.25rem);
+            font-style: italic;
+            color: var(--text-secondary);
+            font-weight: 300;
+        }
+        .slide-title .title-image {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .slide-title .title-image img {
+            max-width: 100%;
+            max-height: min(65vh, 500px);
+            object-fit: contain;
+            border-radius: 12px;
+            box-shadow: 0 8px 40px rgba(0,0,0,0.1);
+        }
+
+        /* ===================================================
+           SPECIAL SLIDE STYLES
+           =================================================== */
+        .role-badge {
+            display: flex;
+            align-items: baseline;
+            gap: clamp(0.3rem, 0.8vw, 0.6rem);
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) 0;
+        }
+        .role-name {
+            font-family: 'Courier New', monospace;
+            font-size: var(--small-size);
+            background: var(--accent-soft);
+            color: var(--accent);
+            padding: 0.15em 0.5em;
+            border-radius: 3px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+        .role-desc {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+        }
+
+        .param-card {
+            padding: clamp(0.4rem, 1vw, 0.8rem) 0;
+        }
+        .param-label {
+            font-family: var(--font-display);
+            font-size: var(--h3-size);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .param-desc {
+            font-size: var(--body-size);
+            color: var(--text-secondary);
+            margin-top: 0.15em;
+        }
+        .temp-scale {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            margin-top: clamp(0.2rem, 0.5vw, 0.4rem);
+            font-size: var(--small-size);
+        }
+        .temp-bar {
+            flex: 1;
+            height: 3px;
+            background: linear-gradient(to right, #2e7d32, #f9a825, var(--accent));
+            border-radius: 2px;
+            margin: 0 clamp(0.3rem, 0.8vw, 0.6rem);
+        }
+        .temp-label {
+            font-family: var(--font-body);
+            color: var(--text-muted);
+            font-size: var(--small-size);
+            white-space: nowrap;
+        }
+
+        .flow-steps {
+            display: flex;
+            align-items: center;
+            gap: clamp(0.2rem, 0.5vw, 0.5rem);
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .flow-step {
+            background: var(--bg-paper);
+            border: 1px solid var(--rule-color);
+            border-radius: 6px;
+            padding: clamp(0.3rem, 0.6vw, 0.5rem) clamp(0.5rem, 1vw, 0.8rem);
+            font-size: var(--small-size);
+            font-family: var(--font-body);
+            text-align: center;
+        }
+        .flow-step .step-num {
+            display: block;
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--accent);
+            font-size: var(--body-size);
+        }
+        .flow-arrow {
+            font-size: var(--body-size);
+            color: var(--text-muted);
+        }
+
+        .indicator {
+            display: inline-block;
+            width: clamp(1rem, 1.8vw, 1.4rem);
+            height: clamp(1rem, 1.8vw, 1.4rem);
+            border-radius: 50%;
+            text-align: center;
+            line-height: clamp(1rem, 1.8vw, 1.4rem);
+            font-size: clamp(0.55rem, 1vw, 0.75rem);
+            color: #fff;
+            margin-right: 0.3em;
+            vertical-align: middle;
+        }
+        .indicator.good { background: var(--good); }
+        .indicator.bad { background: var(--bad); }
+
+        .component-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: clamp(0.3rem, 0.8vw, 0.6rem);
+        }
+        .component-item {
+            background: var(--accent-soft);
+            border-radius: 6px;
+            padding: clamp(0.3rem, 0.7vw, 0.6rem) clamp(0.5rem, 1vw, 0.8rem);
+            font-size: var(--body-size);
+            font-weight: 600;
+            color: var(--text-primary);
+            text-align: center;
+        }
+
+        .conclusion-item {
+            display: flex;
+            align-items: baseline;
+            gap: clamp(0.4rem, 1vw, 0.8rem);
+            padding: clamp(0.2rem, 0.4vh, 0.35rem) 0;
+        }
+        .conclusion-num {
+            font-family: var(--font-display);
+            font-weight: 700;
+            color: var(--accent);
+            font-size: var(--h3-size);
+            min-width: 1.5em;
+            text-align: right;
+        }
+
+        /* ===================================================
+           ANIMATIONS
+           =================================================== */
+        .reveal {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.7s var(--ease-out-expo), transform 0.7s var(--ease-out-expo);
+        }
+        .visible .reveal {
+            opacity: 1;
+            transform: translateY(0);
+        }
+        .reveal:nth-child(1) { transition-delay: 0.05s; }
+        .reveal:nth-child(2) { transition-delay: 0.12s; }
+        .reveal:nth-child(3) { transition-delay: 0.19s; }
+        .reveal:nth-child(4) { transition-delay: 0.26s; }
+        .reveal:nth-child(5) { transition-delay: 0.33s; }
+        .reveal:nth-child(6) { transition-delay: 0.40s; }
+        .reveal:nth-child(7) { transition-delay: 0.47s; }
+        .reveal:nth-child(8) { transition-delay: 0.54s; }
+        .reveal:nth-child(9) { transition-delay: 0.61s; }
+        .reveal:nth-child(10) { transition-delay: 0.68s; }
+
+        .reveal-rule {
+            opacity: 0;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: opacity 0.5s ease, transform 0.8s var(--ease-out-expo);
+        }
+        .visible .reveal-rule {
+            opacity: 1;
+            transform: scaleX(1);
+        }
+
+        .reveal-img {
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.8s var(--ease-out-expo), transform 0.8s var(--ease-out-expo);
+            transition-delay: 0.2s;
+        }
+        .visible .reveal-img {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        /* ===================================================
+           NAVIGATION
+           =================================================== */
+        .progress-bar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background: transparent;
+            z-index: 9000;
+        }
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.4s var(--ease-out-expo);
+        }
+
+        .nav-dots {
+            position: fixed;
+            right: clamp(0.6rem, 1.5vw, 1.2rem);
+            top: 50%;
+            transform: translateY(-50%);
+            display: flex;
+            flex-direction: column;
+            gap: clamp(4px, 0.6vh, 8px);
+            z-index: 9000;
+        }
+        .nav-dot {
+            width: clamp(5px, 0.6vw, 8px);
+            height: clamp(5px, 0.6vw, 8px);
+            border-radius: 50%;
+            border: 1px solid var(--rule-color);
+            background: transparent;
+            cursor: pointer;
+            padding: 0;
+            transition: all 0.3s ease;
+        }
+        .nav-dot.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            transform: scale(1.3);
+        }
+        .nav-dot:hover {
+            border-color: var(--accent);
+        }
+
+        .keyboard-hint {
+            position: fixed;
+            bottom: clamp(0.5rem, 1.5vw, 1rem);
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: var(--font-body);
+            font-size: var(--small-size);
+            color: var(--text-muted);
+            opacity: 0.6;
+            transition: opacity 1s ease;
+            z-index: 9000;
+        }
+        .keyboard-hint.hidden { opacity: 0; pointer-events: none; }
+
+        /* ===================================================
+           EDIT MODE
+           =================================================== */
+        .edit-hotzone {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 80px;
+            height: 80px;
+            z-index: 10000;
+            cursor: pointer;
+        }
+        .edit-toggle {
+            position: fixed;
+            top: clamp(0.5rem, 1.5vw, 1rem);
+            left: clamp(0.5rem, 1.5vw, 1rem);
+            width: clamp(28px, 3vw, 36px);
+            height: clamp(28px, 3vw, 36px);
+            border-radius: 50%;
+            border: 1px solid var(--rule-color);
+            background: var(--bg-cream);
+            font-size: clamp(12px, 1.2vw, 16px);
+            cursor: pointer;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, background 0.3s ease;
+            z-index: 10001;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .edit-toggle.show,
+        .edit-toggle.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .edit-toggle.active {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: #fff;
+        }
+        .edit-mode [contenteditable="true"] {
+            outline: 1px dashed var(--accent);
+            outline-offset: 2px;
+            border-radius: 2px;
+        }
+
+        /* ===================================================
+           RESPONSIVE
+           =================================================== */
+        @media (max-height: 700px) {
+            :root {
+                --slide-padding: clamp(0.75rem, 3vw, 2.5rem);
+                --content-gap: clamp(0.4rem, 1.5vw, 1rem);
+                --title-size: clamp(1.25rem, 4.5vw, 2.5rem);
+                --h2-size: clamp(1rem, 3vw, 1.75rem);
+            }
+        }
+        @media (max-height: 600px) {
+            :root {
+                --slide-padding: clamp(0.5rem, 2.5vw, 1.5rem);
+                --content-gap: clamp(0.3rem, 1vw, 0.75rem);
+                --title-size: clamp(1.1rem, 4vw, 2rem);
+                --body-size: clamp(0.7rem, 1.2vw, 0.95rem);
+            }
+            .nav-dots, .keyboard-hint { display: none; }
+        }
+        @media (max-height: 500px) {
+            :root {
+                --slide-padding: clamp(0.4rem, 2vw, 1rem);
+                --title-size: clamp(1rem, 3.5vw, 1.5rem);
+                --h2-size: clamp(0.9rem, 2.5vw, 1.25rem);
+                --body-size: clamp(0.65rem, 1vw, 0.85rem);
+            }
+        }
+        @media (max-width: 768px) {
+            .slide-title .title-split { grid-template-columns: 1fr; }
+            .slide-title .title-image { display: none; }
+            .two-col { grid-template-columns: 1fr; gap: clamp(0.5rem, 1.5vw, 1rem); }
+            .two-col.with-divider::after { display: none; }
+            .three-col { grid-template-columns: 1fr; }
+            .image-text-split { grid-template-columns: 1fr; }
+            .component-grid { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 600px) {
+            :root { --title-size: clamp(1.25rem, 7vw, 2.5rem); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            *, *::before, *::after {
+                animation-duration: 0.01ms !important;
+                transition-duration: 0.2s !important;
+            }
+            html { scroll-behavior: auto; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ============================================
+         SLIDE 1: TITLE
+         ============================================ -->
+    <section class="slide slide-title" id="slide-1">
+        <div class="slide-content">
+            <div class="title-split">
+                <div class="title-text">
+                    <hr class="elegant-rule short reveal-rule">
+                    <h1 class="reveal">Основы использования<br>Large Language Models</h1>
+                    <p class="subtitle reveal">Базовые термины, определения<br>и принципы работы</p>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.3s">
+                </div>
+                <div class="title-image">
+                    <img src="images/langing.jpeg" alt="LLM illustration" class="reveal-img">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 2: WHAT IS LLM
+         ============================================ -->
+    <section class="slide" id="slide-2">
+        <div class="slide-content">
+            <span class="section-number reveal">01</span>
+            <h2 class="reveal">Что такое LLM?</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <p class="reveal" style="transition-delay:0.2s; margin-bottom: var(--content-gap);">
+                <span class="drop-cap">L</span>arge Language Model — искусственная нейронная сеть огромного масштаба, обученная на колоссальных массивах текстовых данных. Её цель — понимать, генерировать и предсказывать текстовые последовательности.
+            </p>
+            <ul class="editorial-list">
+                <li class="reveal" style="transition-delay:0.25s">Чат-боты и виртуальные ассистенты</li>
+                <li class="reveal" style="transition-delay:0.30s">Генерация контента — статьи, сценарии, маркетинг</li>
+                <li class="reveal" style="transition-delay:0.35s">Анализ и суммаризация документов</li>
+                <li class="reveal" style="transition-delay:0.40s">Программирование — генерация, объяснение, отладка кода</li>
+                <li class="reveal" style="transition-delay:0.45s">Креативные задачи — идеи, сюжеты, поэзия</li>
+                <li class="reveal" style="transition-delay:0.50s">Перевод между языками</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 3: EXPECTATIONS VS REALITY
+         ============================================ -->
+    <section class="slide" id="slide-3">
+        <div class="slide-content">
+            <span class="section-number reveal">02</span>
+            <h2 class="reveal">Ожидания vs Реальность</h2>
+            <hr class="elegant-rule reveal-rule" style="transition-delay:0.15s">
+            <div class="two-col with-divider" style="margin-top: var(--content-gap);">
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s"><span class="indicator good">&#10003;</span> Сильные стороны</h3>
+                    <ul class="editorial-list">
+                        <li class="reveal" style="transition-delay:0.28s"><strong>Анализ текста</strong> — тональность, суть, классификация</li>
+                        <li class="reveal" style="transition-delay:0.34s"><strong>Работа с кодом</strong> — генерация, объяснение, перевод между языками</li>
+                        <li class="reveal" style="transition-delay:0.40s"><strong>Документы</strong> — суммаризация, ответы по тексту, структурирование</li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s"><span class="indicator bad">&#10007;</span> Ограничения</h3>
+                    <ul class="editorial-list">
+                        <li class="reveal" style="transition-delay:0.28s"><strong>Математика</strong> — ошибки в арифметике и логических выводах</li>
+                        <li class="reveal" style="transition-delay:0.34s"><strong>Актуальность</strong> — знания ограничены датой обучения модели</li>
+                        <li class="reveal" style="transition-delay:0.40s"><strong>«Галлюцинации»</strong> — правдоподобная, но фактически неверная информация</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 4: ARCHITECTURE
+         ============================================ -->
+    <section class="slide" id="slide-4">
+        <div class="slide-content">
+            <span class="section-number reveal">03</span>
+            <h2 class="reveal">Как работают LLM?</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div class="image-text-split" style="margin-top: var(--element-gap);">
+                <div style="display:flex; justify-content:center; align-items:center;">
+                    <img src="images/neural_network.png" alt="Neural network architecture" class="img-editorial framed reveal-img" style="max-height: min(55vh, 420px);">
+                </div>
+                <div class="col" style="justify-content: center; gap: clamp(0.4rem, 1vw, 0.8rem);">
+                    <p class="reveal text-secondary" style="transition-delay:0.2s">Прогнозирующая модель с миллиардами параметров, обученная предсказывать следующий токен в последовательности.</p>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.3s">
+                    <div class="reveal" style="transition-delay:0.35s">
+                        <p><strong class="text-accent">Нейроны</strong> <span class="text-secondary">— узлы сети, обрабатывающие информацию</span></p>
+                    </div>
+                    <div class="reveal" style="transition-delay:0.42s">
+                        <p><strong class="text-accent">Веса связей</strong> <span class="text-secondary">— числа, определяющие силу связи между нейронами</span></p>
+                    </div>
+                    <div class="reveal" style="transition-delay:0.49s">
+                        <p><strong class="text-accent">Функция активации</strong> <span class="text-secondary">— нелинейная функция, добавляющая сложность модели</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 5: CHAT & CONTEXT
+         ============================================ -->
+    <section class="slide" id="slide-5">
+        <div class="slide-content">
+            <span class="section-number reveal">04</span>
+            <h2 class="reveal">Чат и Контекст</h2>
+            <hr class="elegant-rule reveal-rule" style="transition-delay:0.15s">
+            <div class="two-col" style="margin-top: var(--content-gap);">
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s">Роли в диалоге</h3>
+                    <div class="role-badge reveal" style="transition-delay:0.28s">
+                        <span class="role-name">system</span>
+                        <span class="role-desc">Задаёт личность, тон, правила модели</span>
+                    </div>
+                    <div class="role-badge reveal" style="transition-delay:0.34s">
+                        <span class="role-name">user</span>
+                        <span class="role-desc">Запросы и вопросы человека</span>
+                    </div>
+                    <div class="role-badge reveal" style="transition-delay:0.40s">
+                        <span class="role-name">assistant</span>
+                        <span class="role-desc">Ответы модели</span>
+                    </div>
+                </div>
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s">Контекстное окно</h3>
+                    <p class="reveal text-secondary" style="transition-delay:0.28s">Вся история диалога, которую модель «помнит» при генерации ответа — её рабочая память.</p>
+                    <p class="reveal" style="transition-delay:0.34s"><strong>Размер:</strong> <span class="text-secondary">от 8K до 128K+ токенов</span></p>
+                    <p class="reveal" style="transition-delay:0.40s"><strong>Переполнение:</strong> <span class="text-secondary">модель «забывает» информацию из середины диалога</span></p>
+                    <p class="reveal" style="transition-delay:0.46s"><strong>Решение:</strong> <span class="text-secondary">суммаризация ключевых моментов</span></p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 6: TOKENS & PROMPTS
+         ============================================ -->
+    <section class="slide" id="slide-6">
+        <div class="slide-content">
+            <span class="section-number reveal">05</span>
+            <h2 class="reveal">Токены и Промпты</h2>
+            <hr class="elegant-rule reveal-rule" style="transition-delay:0.15s">
+            <div class="two-col with-divider" style="margin-top: var(--content-gap);">
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s">Токены</h3>
+                    <p class="reveal text-secondary" style="transition-delay:0.28s">Базовые единицы текста для модели. Не всегда целые слова — могут быть слогами, частями слов, знаками препинания.</p>
+                    <div class="pull-quote reveal" style="transition-delay:0.36s">
+                        Модель получает последовательность токенов и предсказывает наиболее вероятный следующий.
+                    </div>
+                </div>
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.2s">Системный промпт</h3>
+                    <p class="reveal text-secondary" style="transition-delay:0.28s">Скрытая инструкция, задающая модели поведение с самого начала диалога.</p>
+                    <ul class="editorial-list">
+                        <li class="reveal" style="transition-delay:0.36s">Определяет роль, стиль, ограничения</li>
+                        <li class="reveal" style="transition-delay:0.42s">Задаёт формат ответов</li>
+                        <li class="reveal" style="transition-delay:0.48s">Объём: от 0.5 до 2 страниц A4</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 7: GENERATION PARAMETERS
+         ============================================ -->
+    <section class="slide" id="slide-7">
+        <div class="slide-content">
+            <span class="section-number reveal">06</span>
+            <h2 class="reveal">Параметры генерации</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div style="display:flex; flex-direction:column; gap: var(--content-gap); margin-top: var(--content-gap);">
+                <div class="param-card reveal" style="transition-delay:0.2s">
+                    <span class="param-label">Temperature</span>
+                    <p class="param-desc">Контролирует случайность и креативность ответов</p>
+                    <div class="temp-scale">
+                        <span class="temp-label">~0 Точный</span>
+                        <div class="temp-bar"></div>
+                        <span class="temp-label">Креативный &gt;1.0</span>
+                    </div>
+                </div>
+                <hr class="elegant-rule reveal-rule" style="transition-delay:0.3s">
+                <div class="param-card reveal" style="transition-delay:0.35s">
+                    <span class="param-label">Top-p</span>
+                    <p class="param-desc">Выбирает из наименьшего набора токенов, чья суммарная вероятность &ge; порога <em>p</em>. Отсекает маловероятные варианты.</p>
+                </div>
+                <hr class="elegant-rule reveal-rule" style="transition-delay:0.42s">
+                <div class="param-card reveal" style="transition-delay:0.47s">
+                    <span class="param-label">Top-k</span>
+                    <p class="param-desc">Ограничивает выбор следующего токена только <em>k</em> наиболее вероятными кандидатами.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 8: MODEL TUNING
+         ============================================ -->
+    <section class="slide" id="slide-8">
+        <div class="slide-content">
+            <span class="section-number reveal">07</span>
+            <h2 class="reveal">Тюнинг моделей</h2>
+            <hr class="elegant-rule reveal-rule" style="transition-delay:0.15s">
+            <p class="reveal text-secondary" style="transition-delay:0.2s; margin-bottom: var(--element-gap);">Базовая LLM — «изолированный мозг». Она не знает вашу специфику, документы и актуальные данные.</p>
+            <div class="two-col with-divider" style="margin-top: var(--element-gap);">
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.28s">Fine-Tuning</h3>
+                    <p class="reveal text-secondary" style="transition-delay:0.34s">Дополнительное обучение модели на вашем наборе данных.</p>
+                    <ul class="editorial-list" style="margin-top: var(--element-gap);">
+                        <li class="reveal" style="transition-delay:0.40s"><strong>+</strong> Глубоко усваивает стиль и домен</li>
+                        <li class="reveal" style="transition-delay:0.45s"><strong>&minus;</strong> Дорого, риск «катастрофического забывания»</li>
+                    </ul>
+                </div>
+                <div class="col">
+                    <h3 class="reveal" style="transition-delay:0.28s">RAG</h3>
+                    <p class="reveal text-secondary" style="transition-delay:0.34s">Retrieval-Augmented Generation — дополнение промпта релевантными фрагментами из базы знаний.</p>
+                    <div class="pull-quote reveal" style="transition-delay:0.42s; font-size: var(--body-size);">
+                        Библиотекарь, который находит нужные книги и даёт их модели для ответа.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 9: VECTORS & EMBEDDINGS
+         ============================================ -->
+    <section class="slide" id="slide-9">
+        <div class="slide-content">
+            <span class="section-number reveal">08</span>
+            <h2 class="reveal">Векторы и эмбеддинги</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div class="image-text-split" style="margin-top: var(--element-gap);">
+                <div style="display:flex; justify-content:center; align-items:center;">
+                    <img src="images/embeddings.png" alt="Embeddings diagram" class="img-editorial reveal-img" style="max-height: min(50vh, 380px);">
+                </div>
+                <div class="col" style="justify-content:center; gap: clamp(0.4rem, 1vw, 0.8rem);">
+                    <div class="reveal" style="transition-delay:0.25s">
+                        <p><strong class="text-accent">Эмбеддинг</strong> <span class="text-secondary">— многомерный числовой вектор (768–1536 измерений), представляющий смысл текста</span></p>
+                    </div>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.33s">
+                    <div class="reveal" style="transition-delay:0.38s">
+                        <p><strong class="text-accent">Векторная БД</strong> <span class="text-secondary">— хранит тексты как векторы и быстро ищет близкие по смыслу</span></p>
+                    </div>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.45s">
+                    <div class="reveal" style="transition-delay:0.50s">
+                        <p><strong class="text-accent">Близость</strong> <span class="text-secondary">— косинусное сходство или скалярное произведение. Ближе к 1 = ближе по смыслу</span></p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 10: RAG PROCESS
+         ============================================ -->
+    <section class="slide" id="slide-10">
+        <div class="slide-content">
+            <span class="section-number reveal">09</span>
+            <h2 class="reveal">Как работает RAG</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div class="flow-steps reveal" style="transition-delay:0.22s; margin: var(--content-gap) 0;">
+                <div class="flow-step">
+                    <span class="step-num">1</span>
+                    Индексация<br><small class="text-muted">документы &rarr; чанки &rarr; векторы</small>
+                </div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">
+                    <span class="step-num">2</span>
+                    Поиск<br><small class="text-muted">запрос &rarr; ближайшие чанки</small>
+                </div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">
+                    <span class="step-num">3</span>
+                    Промпт<br><small class="text-muted">запрос + контекст из БД</small>
+                </div>
+                <span class="flow-arrow">&rarr;</span>
+                <div class="flow-step">
+                    <span class="step-num">4</span>
+                    Генерация<br><small class="text-muted">LLM отвечает по контексту</small>
+                </div>
+            </div>
+            <div style="display:flex; justify-content:center;">
+                <img src="images/vector_search.png" alt="Vector search" class="img-editorial reveal-img" style="max-height: min(38vh, 300px);">
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 11: MCP
+         ============================================ -->
+    <section class="slide slide-dark" id="slide-11">
+        <div class="slide-content" style="max-width: 800px; margin: 0 auto;">
+            <span class="section-number reveal">10</span>
+            <h2 class="reveal">Model Context Protocol</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s; background: rgba(255,255,255,0.4);">
+            <p class="reveal" style="transition-delay:0.22s; color: rgba(255,255,255,0.8); margin-bottom: var(--content-gap);">
+                <span class="drop-cap" style="color: rgba(255,255,255,0.5);">M</span>CP — открытый протокол, позволяющий LLM безопасно взаимодействовать с внешними инструментами, API и данными.
+            </p>
+            <div class="pull-quote reveal" style="transition-delay:0.32s; border-color: rgba(255,255,255,0.3); color: rgba(255,255,255,0.7);">
+                Стандартный «разъём» — как USB — для подключения инструментов к «мозгу» модели.
+            </div>
+            <ul class="editorial-list" style="margin-top: var(--content-gap);">
+                <li class="reveal" style="transition-delay:0.40s; color: rgba(255,255,255,0.8);">Превращает LLM из «говорящей головы» в действующего агента</li>
+                <li class="reveal" style="transition-delay:0.46s; color: rgba(255,255,255,0.8);">Поиск в интернете, работа с файлами, вызов API</li>
+                <li class="reveal" style="transition-delay:0.52s; color: rgba(255,255,255,0.8);">Управление устройствами и внешним ПО</li>
+            </ul>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 12: AGENTS
+         ============================================ -->
+    <section class="slide" id="slide-12">
+        <div class="slide-content">
+            <span class="section-number reveal">11</span>
+            <h2 class="reveal">LLM-агенты</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div class="image-text-split" style="margin-top: var(--element-gap);">
+                <div class="col" style="justify-content:center; gap: clamp(0.4rem, 1vw, 0.8rem);">
+                    <p class="reveal text-secondary" style="transition-delay:0.22s">Система на основе LLM, которая самостоятельно планирует и выполняет последовательность действий для достижения сложной цели.</p>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.30s">
+                    <div class="component-grid reveal" style="transition-delay:0.36s">
+                        <div class="component-item">Планировщик</div>
+                        <div class="component-item">Память</div>
+                        <div class="component-item">Инструменты</div>
+                        <div class="component-item">Самокритика</div>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:center; align-items:center;">
+                    <img src="images/agent_hero.png" alt="LLM Agent" class="img-editorial framed reveal-img" style="max-height: min(50vh, 380px);">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 13: CHERRY STUDIO
+         ============================================ -->
+    <section class="slide" id="slide-13">
+        <div class="slide-content center-layout">
+            <span class="section-number reveal">12</span>
+            <h2 class="reveal">Cherry Studio</h2>
+            <p class="reveal text-secondary" style="transition-delay:0.15s; max-width: 600px;">Платформа для развёртывания, тестирования и мониторинга LLM-приложений. «Панель управления» для ваших AI-проектов.</p>
+            <img src="images/cherry_studio.png" alt="Cherry Studio interface" class="img-editorial screenshot reveal-img" style="max-height: min(48vh, 380px);">
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 14: ECOSYSTEM
+         ============================================ -->
+    <section class="slide" id="slide-14">
+        <div class="slide-content">
+            <span class="section-number reveal">13</span>
+            <h2 class="reveal">Экосистема моделей</h2>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.15s">
+            <div class="image-text-split" style="margin-top: var(--element-gap);">
+                <div class="col" style="justify-content:center; gap: clamp(0.5rem, 1.2vw, 1rem);">
+                    <div class="reveal" style="transition-delay:0.22s">
+                        <p><strong class="text-accent">По лицензии</strong></p>
+                        <p class="text-secondary">Открытые (Llama 3, Mistral, Gemma) и проприетарные (GPT-4, Claude)</p>
+                    </div>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.30s">
+                    <div class="reveal" style="transition-delay:0.35s">
+                        <p><strong class="text-accent">По размеру</strong></p>
+                        <p class="text-secondary">От 7B для мобильных устройств до 400B+ для исследований</p>
+                    </div>
+                    <hr class="elegant-rule reveal-rule" style="transition-delay:0.42s">
+                    <div class="reveal" style="transition-delay:0.47s">
+                        <p><strong class="text-accent">По специализации</strong></p>
+                        <p class="text-secondary">Общие (Llama), код (CodeLlama), мультимодальные (LLaVA)</p>
+                    </div>
+                </div>
+                <div style="display:flex; justify-content:center; align-items:center;">
+                    <img src="images/cherry_studio_settings.png" alt="Model providers" class="img-editorial screenshot reveal-img" style="max-height: min(50vh, 380px);">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============================================
+         SLIDE 15: CONCLUSION
+         ============================================ -->
+    <section class="slide" id="slide-15">
+        <div class="slide-content" style="max-width: 850px; margin: 0 auto;">
+            <h2 class="reveal" style="text-align:center;">Ключевые выводы</h2>
+            <hr class="elegant-rule reveal-rule" style="transition-delay:0.1s; margin-bottom: var(--content-gap);">
+            <div class="conclusion-item reveal" style="transition-delay:0.18s">
+                <span class="conclusion-num">1.</span>
+                <p>LLM — мощный, но не всесильный инструмент. Знайте сильные стороны и ограничения.</p>
+            </div>
+            <div class="conclusion-item reveal" style="transition-delay:0.25s">
+                <span class="conclusion-num">2.</span>
+                <p><strong>Контекст</strong> — это память модели. Управляйте им осознанно.</p>
+            </div>
+            <div class="conclusion-item reveal" style="transition-delay:0.32s">
+                <span class="conclusion-num">3.</span>
+                <p><strong>Промпт</strong> — это инструкция. Чёткий промпт = качественный ответ.</p>
+            </div>
+            <div class="conclusion-item reveal" style="transition-delay:0.39s">
+                <span class="conclusion-num">4.</span>
+                <p>Для работы со своими данными: <strong>RAG</strong> как быстрый старт, <strong>Fine-Tuning</strong> для глубокой интеграции.</p>
+            </div>
+            <div class="conclusion-item reveal" style="transition-delay:0.46s">
+                <span class="conclusion-num">5.</span>
+                <p><strong>MCP и Агенты</strong> открывают путь к интеллектуальным автономным системам.</p>
+            </div>
+            <div class="conclusion-item reveal" style="transition-delay:0.53s">
+                <span class="conclusion-num">6.</span>
+                <p>Тестируйте, сравнивайте, выбирайте модель <strong>под задачу</strong>.</p>
+            </div>
+            <hr class="elegant-rule short reveal-rule" style="transition-delay:0.6s; margin-top: var(--content-gap); margin-left: auto; margin-right: auto;">
+        </div>
+    </section>
+
+    <!-- ===== NAVIGATION ===== -->
+    <div class="progress-bar"><div class="progress-fill"></div></div>
+    <nav class="nav-dots" aria-label="Slide navigation"></nav>
+    <div class="keyboard-hint">&#8592; &#8594; &nbsp; / &nbsp; Space &nbsp; / &nbsp; Scroll</div>
+
+    <!-- ===== EDIT MODE ===== -->
+    <div class="edit-hotzone"></div>
+    <button class="edit-toggle" id="editToggle" title="Edit mode (E)">&#9998;</button>
+
+    <script>
+    (function() {
+        /* ===========================================
+           SLIDE PRESENTATION CONTROLLER
+           =========================================== */
+        const slides = document.querySelectorAll('.slide');
+        let currentSlide = 0;
+        let dots = [];
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    entry.target.classList.add('visible');
+                    currentSlide = [...slides].indexOf(entry.target);
+                    updateDots();
+                    updateProgress();
+                } else {
+                    entry.target.classList.remove('visible');
+                }
+            });
+        }, { threshold: 0.5 });
+
+        slides.forEach(slide => observer.observe(slide));
+
+        function goToSlide(index) {
+            if (index >= 0 && index < slides.length) {
+                slides[index].scrollIntoView({ behavior: 'smooth' });
+            }
+        }
+
+        /* Keyboard */
+        document.addEventListener('keydown', (e) => {
+            if (e.target.getAttribute && e.target.getAttribute('contenteditable') === 'true') return;
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') {
+                e.preventDefault();
+                goToSlide(currentSlide + 1);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft' || e.key === 'PageUp') {
+                e.preventDefault();
+                goToSlide(currentSlide - 1);
+            } else if (e.key === 'Home') {
+                e.preventDefault();
+                goToSlide(0);
+            } else if (e.key === 'End') {
+                e.preventDefault();
+                goToSlide(slides.length - 1);
+            }
+        });
+
+        /* Mouse wheel — throttled */
+        let lastWheel = 0;
+        document.addEventListener('wheel', (e) => {
+            const now = Date.now();
+            if (now - lastWheel < 800) return;
+            lastWheel = now;
+            if (e.deltaY > 0) goToSlide(currentSlide + 1);
+            else if (e.deltaY < 0) goToSlide(currentSlide - 1);
+        }, { passive: true });
+
+        /* Touch swipe */
+        let touchStartY = 0;
+        document.addEventListener('touchstart', (e) => { touchStartY = e.touches[0].clientY; }, { passive: true });
+        document.addEventListener('touchend', (e) => {
+            const diff = touchStartY - e.changedTouches[0].clientY;
+            if (Math.abs(diff) > 50) {
+                if (diff > 0) goToSlide(currentSlide + 1);
+                else goToSlide(currentSlide - 1);
+            }
+        }, { passive: true });
+
+        /* Nav dots */
+        const dotsContainer = document.querySelector('.nav-dots');
+        slides.forEach((_, i) => {
+            const dot = document.createElement('button');
+            dot.classList.add('nav-dot');
+            dot.setAttribute('aria-label', 'Slide ' + (i + 1));
+            dot.addEventListener('click', () => goToSlide(i));
+            dotsContainer.appendChild(dot);
+        });
+        dots = dotsContainer.querySelectorAll('.nav-dot');
+        if (dots.length > 0) dots[0].classList.add('active');
+
+        function updateDots() {
+            dots.forEach((dot, i) => dot.classList.toggle('active', i === currentSlide));
+        }
+
+        /* Progress bar */
+        function updateProgress() {
+            const pct = slides.length > 1 ? (currentSlide / (slides.length - 1)) * 100 : 0;
+            document.querySelector('.progress-fill').style.width = pct + '%';
+        }
+
+        /* Hide keyboard hint after first interaction */
+        const hint = document.querySelector('.keyboard-hint');
+        let hintHidden = false;
+        function hideHint() {
+            if (!hintHidden) { hint.classList.add('hidden'); hintHidden = true; }
+        }
+        document.addEventListener('keydown', hideHint, { once: true });
+        document.addEventListener('wheel', hideHint, { once: true });
+        document.addEventListener('touchstart', hideHint, { once: true });
+
+        /* First slide visible on load */
+        slides[0].classList.add('visible');
+
+        /* ===========================================
+           EDIT MODE
+           =========================================== */
+        let editActive = false;
+        const editables = 'h1, h2, h3, p, li, .role-desc, .param-desc, .component-item, .conclusion-num';
+
+        function toggleEdit() {
+            editActive = !editActive;
+            const btn = document.getElementById('editToggle');
+            btn.classList.toggle('active', editActive);
+            document.querySelectorAll(editables).forEach(el => {
+                el.contentEditable = editActive;
+            });
+            document.body.classList.toggle('edit-mode', editActive);
+        }
+
+        document.getElementById('editToggle').addEventListener('click', toggleEdit);
+
+        const hotzone = document.querySelector('.edit-hotzone');
+        const editToggle = document.getElementById('editToggle');
+        let hideTimeout = null;
+
+        hotzone.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); editToggle.classList.add('show'); });
+        hotzone.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => { if (!editActive) editToggle.classList.remove('show'); }, 400);
+        });
+        editToggle.addEventListener('mouseenter', () => { clearTimeout(hideTimeout); });
+        editToggle.addEventListener('mouseleave', () => {
+            hideTimeout = setTimeout(() => { if (!editActive) editToggle.classList.remove('show'); }, 400);
+        });
+        hotzone.addEventListener('click', toggleEdit);
+
+        document.addEventListener('keydown', (e) => {
+            if ((e.key === 'e' || e.key === 'E') && !e.target.getAttribute('contenteditable')) {
+                toggleEdit();
+            }
+        });
+    })();
+    </script>
+</body>
+</html>
