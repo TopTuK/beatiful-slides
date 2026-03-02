@@ -1,0 +1,8 @@
+# Beautiful Slides — Python dependencies
+# Used by the Cursor agent when running PPT conversion or image processing.
+
+# PPT/PPTX extraction (Phase 4)
+python-pptx>=0.6.21
+
+# Image processing (crop, resize, padding for presentation assets)
+Pillow>=10.0.0
